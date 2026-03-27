@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Third Round Table</title>
-<script src="https://miro.com/app/static/sdk/v2/miro.js"></script>
+<title>Third Round Visual Factory</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
 
@@ -19,10 +18,9 @@
 
   body {
     font-family: 'Barlow', sans-serif;
-    background: #f0f0f0;
-    padding: 16px;
-    height: 100vh;
-    overflow: auto;
+    background: #e8e8e8;
+    min-height: 100vh;
+    padding: 20px;
   }
 
   .wrapper {
@@ -30,14 +28,16 @@
     border-radius: 4px;
     padding: 16px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    max-width: 100%;
   }
 
+  /* HEADER */
   .top-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
-    padding-bottom: 8px;
+    padding-bottom: 10px;
     border-bottom: 3px solid var(--red);
   }
 
@@ -49,27 +49,30 @@
     text-transform: uppercase;
     text-decoration: underline;
     text-decoration-color: var(--red);
+    text-underline-offset: 3px;
   }
 
   .project-input {
     border: none;
     border-bottom: 2px solid var(--red);
-    font-family: 'Barlow', sans-serif;
-    font-size: 13px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
     padding: 3px 6px;
-    width: 220px;
+    width: 280px;
     outline: none;
     background: transparent;
     margin-top: 4px;
     display: block;
+    color: var(--black);
   }
 
   .logo {
     font-family: 'Black Han Sans', sans-serif;
-    font-size: 24px;
+    font-size: 26px;
     color: var(--red);
     text-transform: uppercase;
-    text-shadow: 2px 2px 0 var(--black);
+    text-shadow: 3px 3px 0 var(--black);
     line-height: 1;
     text-align: right;
   }
@@ -84,15 +87,47 @@
     letter-spacing: 3px;
   }
 
+  /* SYNC STATUS */
+  .sync-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    color: #666;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ccc;
+    transition: background 0.3s;
+  }
+
+  .sync-dot.synced { background: var(--green); }
+  .sync-dot.syncing { background: orange; animation: pulse 0.8s infinite; }
+  .sync-dot.error { background: var(--red); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* TABLE */
   .outer-wrapper {
     position: relative;
     overflow-x: auto;
+    padding-right: 48px;
+    padding-bottom: 48px;
   }
 
   table {
     border-collapse: collapse;
-    table-layout: fixed;
-    width: 100%;
+    table-layout: auto;
   }
 
   thead th {
@@ -106,14 +141,19 @@
     border: 1px solid var(--border);
     white-space: nowrap;
     position: relative;
-    min-width: 100px;
+    min-width: 110px;
   }
 
   th.th-empty { background: white; border: none; min-width: 70px; }
-
-  th.th-red   { background: var(--red); color: white; }
-
+  th.th-red { background: var(--red); color: white; }
   th.th-green { background: var(--green); color: white; }
+
+  th .col-name {
+    outline: none;
+    display: inline-block;
+    width: calc(100% - 18px);
+    cursor: text;
+  }
 
   .remove-col-btn {
     display: none;
@@ -129,12 +169,11 @@
     line-height: 13px;
     text-align: center;
   }
-
   th:hover .remove-col-btn { display: block; }
 
   tbody td {
     border: 1px solid var(--border);
-    height: 60px;
+    height: 64px;
     padding: 0;
     background: white;
     vertical-align: top;
@@ -148,6 +187,7 @@
     vertical-align: top;
     padding-top: 6px;
     min-width: 70px;
+    position: relative;
   }
 
   .row-number {
@@ -158,7 +198,7 @@
     display: block;
   }
 
-  .row-label {
+  .row-sublabel {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700;
     font-size: 9px;
@@ -166,12 +206,14 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     display: block;
+    outline: none;
+    cursor: text;
   }
 
   .cell-input {
     width: 100%;
     height: 100%;
-    min-height: 60px;
+    min-height: 64px;
     border: none;
     outline: none;
     padding: 6px 8px;
@@ -187,7 +229,7 @@
   td.td-actions {
     border: none;
     background: transparent;
-    width: 28px;
+    width: 24px;
     text-align: center;
     vertical-align: middle;
   }
@@ -203,43 +245,54 @@
     line-height: 16px;
     text-align: center;
     padding: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
   }
 
+  tr:hover .btn-del-row { opacity: 1; }
   .btn-del-row:hover { border-color: var(--red); color: var(--red); }
 
-  .bottom-bar {
+  /* ADD ROW BUTTON */
+  .add-row-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: calc(100% - 48px);
+    height: 40px;
     display: flex;
-    gap: 10px;
-    margin-top: 10px;
+    align-items: center;
     justify-content: center;
   }
 
-  .btn-add {
+  .btn-add-row {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 12px;
     letter-spacing: 1px;
     text-transform: uppercase;
     cursor: pointer;
     border: 2px solid var(--red);
     background: white;
     color: var(--red);
-    padding: 8px 18px;
+    padding: 6px 20px;
     transition: all 0.15s;
+    border-radius: 2px;
   }
+  .btn-add-row:hover { background: var(--red); color: white; }
 
-  .btn-add:hover { background: var(--red); color: white; }
-
-  .add-col-btn-wrapper {
+  /* ADD COLUMN BUTTON */
+  .add-col-wrapper {
     position: absolute;
-    right: -42px;
+    right: 0;
     top: 0;
-    height: 100%;
+    width: 44px;
+    height: calc(100% - 48px);
     display: flex;
-    align-items: stretch;
+    align-items: center;
+    justify-content: center;
   }
 
-  .btn-add-col-side {
+  .btn-add-col {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700;
     font-size: 11px;
@@ -251,13 +304,16 @@
     background: white;
     color: var(--red);
     width: 36px;
-    padding: 12px 0;
+    height: 100%;
     transition: all 0.15s;
     border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+  .btn-add-col:hover { background: var(--red); color: white; }
 
-  .btn-add-col-side:hover { background: var(--red); color: white; }
-
+  /* TOAST */
   .toast {
     position: fixed;
     bottom: 16px; left: 50%;
@@ -270,145 +326,287 @@
     opacity: 0;
     transition: all 0.25s;
     z-index: 999;
+    font-family: 'Barlow', sans-serif;
   }
-
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
+
 <div class="wrapper">
   <div class="top-header">
     <div>
       <div class="project-label">Project Name</div>
-      <input class="project-input" type="text" placeholder="Nombre del proyecto...">
+      <input class="project-input" id="projectName" type="text" placeholder="Nombre del proyecto...">
     </div>
     <div class="logo">THiRD ROUNd <span>Visual Factory</span></div>
+  </div>
+
+  <div class="sync-bar">
+    <div class="sync-dot" id="syncDot"></div>
+    <span id="syncStatus">Conectando...</span>
   </div>
 
   <div class="outer-wrapper" id="outerWrapper">
     <table id="mainTable">
       <thead id="tableHead">
-        <tr>
+        <tr id="headerRow">
           <th class="th-empty"></th>
-          <th class="th-red">Camera Location<button class="remove-col-btn" onclick="removeCol(this)">✕</button></th>
-          <th class="th-red">Assets<button class="remove-col-btn" onclick="removeCol(this)">✕</button></th>
-          <th class="th-red">Cameras - 1st Pass<button class="remove-col-btn" onclick="removeCol(this)">✕</button></th>
-          <th class="th-red">Cameras - 2nd Pass<button class="remove-col-btn" onclick="removeCol(this)">✕</button></th>
-          <th class="th-red">Chosen Camera<button class="remove-col-btn" onclick="removeCol(this)">✕</button></th>
-          <th class="th-green">First Round<button class="remove-col-btn" onclick="removeCol(this)">✕</button></th>
-          <th class="th-green">Second Round<button class="remove-col-btn" onclick="removeCol(this)">✕</button></th>
-          <th class="th-green">Third Round<button class="remove-col-btn" onclick="removeCol(this)">✕</button></th>
-          <th class="th-empty" style="width:28px;"></th>
+          <!-- cols added dynamically -->
+          <th class="th-empty" style="width:24px; min-width:24px; border:none;"></th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
     </table>
-    <div class="add-col-btn-wrapper" id="addColWrapper">
-      <button class="btn-add-col-side" onclick="addColumn()">+ Add Column</button>
+
+    <div class="add-col-wrapper">
+      <button class="btn-add-col" onclick="addColumn()">+ Add Column</button>
+    </div>
+
+    <div class="add-row-wrapper">
+      <button class="btn-add-row" onclick="addRow()">＋ Add Row</button>
     </div>
   </div>
-
-  <div class="bottom-bar">
-    <button class="btn-add" onclick="addRow()">＋ Add Row</button>
-  </div>
 </div>
+
 <div class="toast" id="toast"></div>
 
-<script>
-  let rowCount = 0;
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  function getDataColCount() {
-    const hr = document.getElementById('tableHead').rows[0];
-    return hr.cells.length - 2; // minus num + actions
+  const firebaseConfig = {
+    apiKey: "AIzaSyAgvIEgZ5npqGvlnoFMXzbleTJ2JUjsnyo",
+    authDomain: "third-round-table.firebaseapp.com",
+    databaseURL: "https://third-round-table-default-rtdb.firebaseio.com",
+    projectId: "third-round-table",
+    storageBucket: "third-round-table.firebasestorage.app",
+    messagingSenderId: "313208561211",
+    appId: "1:313208561211:web:b591c57fef138fe24ec61e"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // State
+  let state = { projectName: '', columns: [], rows: [] };
+  let isLocalUpdate = false;
+
+  function setSyncStatus(status) {
+    const dot = document.getElementById('syncDot');
+    const txt = document.getElementById('syncStatus');
+    dot.className = 'sync-dot ' + status;
+    const labels = { synced: 'Sincronizado', syncing: 'Guardando...', error: 'Error de conexión', '': 'Conectando...' };
+    txt.textContent = labels[status] || 'Conectando...';
   }
 
-  function addRow() {
-    rowCount++;
+  // LISTEN to Firebase
+  const tableRef = ref(db, 'table');
+  onValue(tableRef, (snapshot) => {
+    if (isLocalUpdate) return;
+    const data = snapshot.val();
+    if (data) {
+      state = {
+        projectName: data.projectName || '',
+        columns: data.columns || getDefaultColumns(),
+        rows: data.rows || []
+      };
+    } else {
+      state = {
+        projectName: '',
+        columns: getDefaultColumns(),
+        rows: []
+      };
+      saveToFirebase();
+    }
+    renderAll();
+    setSyncStatus('synced');
+  }, (error) => {
+    setSyncStatus('error');
+  });
+
+  function getDefaultColumns() {
+    return [
+      { id: 'c1', name: 'Camera Location', color: 'red' },
+      { id: 'c2', name: 'Assets', color: 'red' },
+      { id: 'c3', name: 'Cameras - 1st Pass', color: 'red' },
+      { id: 'c4', name: 'Cameras - 2nd Pass', color: 'red' },
+      { id: 'c5', name: 'Chosen Camera', color: 'red' },
+      { id: 'c6', name: 'First Round', color: 'green' },
+      { id: 'c7', name: 'Second Round', color: 'green' },
+      { id: 'c8', name: 'Third Round', color: 'green' },
+    ];
+  }
+
+  function saveToFirebase() {
+    setSyncStatus('syncing');
+    isLocalUpdate = true;
+    set(ref(db, 'table'), state).then(() => {
+      setSyncStatus('synced');
+      setTimeout(() => { isLocalUpdate = false; }, 500);
+    }).catch(() => {
+      setSyncStatus('error');
+      isLocalUpdate = false;
+    });
+  }
+
+  function renderAll() {
+    renderHeader();
+    renderBody();
+    document.getElementById('projectName').value = state.projectName;
+    updateWrapperSize();
+  }
+
+  function renderHeader() {
+    const headerRow = document.getElementById('headerRow');
+    // Clear all except first (empty) and last (actions)
+    while (headerRow.children.length > 1) {
+      headerRow.removeChild(headerRow.lastChild);
+    }
+
+    // Add last empty actions th
+    const actTh = document.createElement('th');
+    actTh.className = 'th-empty';
+    actTh.style.cssText = 'width:24px;min-width:24px;border:none;';
+
+    state.columns.forEach(col => {
+      const th = document.createElement('th');
+      th.className = col.color === 'green' ? 'th-green' : 'th-red';
+      th.dataset.colId = col.id;
+      th.innerHTML = `<span class="col-name" contenteditable="true" data-col-id="${col.id}">${col.name}</span><button class="remove-col-btn" data-col-id="${col.id}">✕</button>`;
+      headerRow.appendChild(th);
+    });
+
+    headerRow.appendChild(actTh);
+
+    // Events on col names
+    headerRow.querySelectorAll('.col-name').forEach(el => {
+      el.addEventListener('blur', (e) => {
+        const colId = e.target.dataset.colId;
+        const col = state.columns.find(c => c.id === colId);
+        if (col) {
+          col.name = e.target.textContent.trim();
+          saveToFirebase();
+        }
+      });
+    });
+
+    // Events on remove col buttons
+    headerRow.querySelectorAll('.remove-col-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const colId = e.target.dataset.colId;
+        if (state.columns.length <= 1) { showToast('Debe quedar al menos una columna'); return; }
+        state.columns = state.columns.filter(c => c.id !== colId);
+        state.rows.forEach(row => { delete row.cells[colId]; });
+        saveToFirebase();
+      });
+    });
+  }
+
+  function renderBody() {
     const tbody = document.getElementById('tableBody');
-    const dataCols = getDataColCount();
-    const tr = document.createElement('tr');
+    tbody.innerHTML = '';
 
-    // Number cell
-    const tdNum = document.createElement('td');
-    tdNum.className = 'td-num';
-    tdNum.innerHTML = `<span class="row-number">O${String(rowCount).padStart(2,'0')}</span><span class="row-label">Image Name</span>`;
-    tr.appendChild(tdNum);
+    state.rows.forEach((row, i) => {
+      const tr = document.createElement('tr');
 
-    // Data cells
-    for (let c = 0; c < dataCols; c++) {
-      const td = document.createElement('td');
-      const ta = document.createElement('textarea');
-      ta.className = 'cell-input';
-      ta.rows = 2;
-      td.appendChild(ta);
-      tr.appendChild(td);
-    }
+      // Number cell
+      const tdNum = document.createElement('td');
+      tdNum.className = 'td-num';
+      tdNum.innerHTML = `
+        <span class="row-number">O${String(i+1).padStart(2,'0')}</span>
+        <span class="row-sublabel" contenteditable="true" data-row-id="${row.id}" data-field="label">${row.label || 'Image Name'}</span>
+      `;
+      tr.appendChild(tdNum);
 
-    // Delete button
-    const tdAct = document.createElement('td');
-    tdAct.className = 'td-actions';
-    tdAct.innerHTML = `<button class="btn-del-row" onclick="removeRow(this)">✕</button>`;
-    tr.appendChild(tdAct);
+      // Data cells
+      state.columns.forEach(col => {
+        const td = document.createElement('td');
+        const ta = document.createElement('textarea');
+        ta.className = 'cell-input';
+        ta.value = (row.cells && row.cells[col.id]) || '';
+        ta.dataset.rowId = row.id;
+        ta.dataset.colId = col.id;
+        ta.addEventListener('input', (e) => {
+          const r = state.rows.find(r => r.id === e.target.dataset.rowId);
+          if (r) {
+            if (!r.cells) r.cells = {};
+            r.cells[e.target.dataset.colId] = e.target.value;
+            saveToFirebase();
+          }
+        });
+        td.appendChild(ta);
+        tr.appendChild(td);
+      });
 
-    tbody.appendChild(tr);
-    updateColHeight();
-    showToast(`Fila O${String(rowCount).padStart(2,'0')} agregada`);
+      // Delete button
+      const tdAct = document.createElement('td');
+      tdAct.className = 'td-actions';
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn-del-row';
+      delBtn.textContent = '✕';
+      delBtn.dataset.rowId = row.id;
+      delBtn.addEventListener('click', (e) => {
+        const rowId = e.target.dataset.rowId;
+        state.rows = state.rows.filter(r => r.id !== rowId);
+        saveToFirebase();
+        showToast('Fila eliminada');
+      });
+      tdAct.appendChild(delBtn);
+      tr.appendChild(tdAct);
+
+      tbody.appendChild(tr);
+    });
+
+    // Label edit events
+    tbody.querySelectorAll('.row-sublabel').forEach(el => {
+      el.addEventListener('blur', (e) => {
+        const rowId = e.target.dataset.rowId;
+        const row = state.rows.find(r => r.id === rowId);
+        if (row) {
+          row.label = e.target.textContent.trim();
+          saveToFirebase();
+        }
+      });
+    });
   }
 
-  function removeRow(btn) {
-    btn.closest('tr').remove();
-    renumber();
-    updateColHeight();
-    showToast('Fila eliminada');
+  function updateWrapperSize() {
+    const table = document.getElementById('mainTable');
+    const outer = document.getElementById('outerWrapper');
+    // heights update naturally
   }
 
-  function renumber() {
-    const rows = document.getElementById('tableBody').rows;
-    rowCount = rows.length;
-    for (let i = 0; i < rows.length; i++) {
-      rows[i].cells[0].innerHTML = `<span class="row-number">O${String(i+1).padStart(2,'0')}</span><span class="row-label">Image Name</span>`;
-    }
-  }
+  // ADD ROW
+  window.addRow = function() {
+    const newRow = {
+      id: 'r' + Date.now(),
+      label: 'Image Name',
+      cells: {}
+    };
+    state.rows.push(newRow);
+    saveToFirebase();
+    showToast(`Fila O${String(state.rows.length).padStart(2,'0')} agregada`);
+  };
 
-  function addColumn() {
-    const hr = document.getElementById('tableHead').rows[0];
-    const actCell = hr.cells[hr.cells.length - 1];
-    const th = document.createElement('th');
-    th.className = 'th-green';
-    th.innerHTML = `<span contenteditable="true" style="outline:none;display:inline-block;width:calc(100% - 16px)">Nueva Columna</span><button class="remove-col-btn" onclick="removeCol(this)" style="display:inline-block">✕</button>`;
-    hr.insertBefore(th, actCell);
-
-    const rows = document.getElementById('tableBody').rows;
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const act = row.cells[row.cells.length - 1];
-      const td = document.createElement('td');
-      const ta = document.createElement('textarea');
-      ta.className = 'cell-input';
-      ta.rows = 2;
-      td.appendChild(ta);
-      row.insertBefore(td, act);
-    }
-
-    updateColHeight();
+  // ADD COLUMN
+  window.addColumn = function() {
+    const newCol = {
+      id: 'c' + Date.now(),
+      name: 'Nueva Columna',
+      color: 'green'
+    };
+    state.columns.push(newCol);
+    saveToFirebase();
     showToast('Columna agregada');
-  }
+  };
 
-  function removeCol(btn) {
-    const th = btn.closest('th');
-    const hr = document.getElementById('tableHead').rows[0];
-    const idx = Array.from(hr.cells).indexOf(th);
-    if (getDataColCount() <= 1) { showToast('Debe quedar al menos una columna'); return; }
-    th.remove();
-    const rows = document.getElementById('tableBody').rows;
-    for (let i = 0; i < rows.length; i++) rows[i].deleteCell(idx);
-    showToast('Columna eliminada');
-  }
-
-  function updateColHeight() {
-    const t = document.getElementById('mainTable');
-    document.getElementById('addColWrapper').style.height = t.offsetHeight + 'px';
-  }
+  // PROJECT NAME
+  document.getElementById('projectName').addEventListener('input', (e) => {
+    state.projectName = e.target.value;
+    saveToFirebase();
+  });
 
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -417,12 +615,7 @@
     setTimeout(() => t.classList.remove('show'), 2000);
   }
 
-  window.onload = () => {
-    for (let i = 0; i < 5; i++) addRow();
-    updateColHeight();
-  };
-
-  window.addEventListener('resize', updateColHeight);
+  setSyncStatus('');
 </script>
 </body>
 </html>
